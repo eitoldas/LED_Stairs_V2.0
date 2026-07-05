@@ -1,14 +1,19 @@
 #include <Arduino.h>
 
+#include "network_manager.h"
 #include "stairs_manager.h"
 
-StairsManager stairsManager;
+NetworkManager networkManager;
+StairsManager  stairsManager;
 
-void setup() {
-  Serial.begin(115200);
-  stairsManager.init();
+void setup()
+{
+    networkManager.init();
+    stairsManager.init(&networkManager);
 }
 
-void loop() {
-  stairsManager.update();
+void loop()
+{
+    networkManager.update();
+    stairsManager.update();
 }
