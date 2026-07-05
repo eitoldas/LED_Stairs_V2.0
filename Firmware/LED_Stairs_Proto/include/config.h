@@ -26,6 +26,4 @@ constexpr uint8_t SENSOR_B_PIN = 18;
 
 constexpr uint32_t RETRIGGER_COOLDOWN_MS = 5000;
 
-constexpr uint16_t LED_STEP_DELAY_MS = 300;
-
 #endif
