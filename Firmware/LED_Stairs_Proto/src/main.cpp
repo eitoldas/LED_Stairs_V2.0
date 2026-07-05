@@ -1,9 +1,13 @@
 #include <Arduino.h>
 
+#include "stairs_manager.h"
+
+StairsManager stairsManager;
+
 void setup() {
-  // put your setup code here, to run once:
+  stairsManager.init();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  stairsManager.update();
 }
