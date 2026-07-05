@@ -1,15 +1,9 @@
 #pragma once
 
+#include "animation_engine.h"
 #include "led_driver.h"
 #include "sensor_driver.h"
 #include "config.h"
-
-struct LEDSchedule
-{
-    uint32_t turnOnAt  = 0;
-    uint32_t turnOffAt = 0;
-    bool     active    = false;
-};
 
 class StairsManager
 {
@@ -19,15 +13,14 @@ public:
 
 private:
     static void sensorTriggered(SensorID sensor);
-    void scheduleAnimation(SensorID direction);
 
-    LEDDriver    ledDriver;
-    SensorDriver sensorDriver;
-
-    LEDSchedule m_schedules[NUM_LEDS];
+    LEDDriver        ledDriver;
+    SensorDriver     sensorDriver;
+    AnimationEngine  animationEngine;
 
     volatile bool     m_animationPending = false;
     volatile SensorID m_pendingSensor    = SensorID::SENSOR_A;
+    volatile bool     m_sensorsBlocked   = true;
 
     static StairsManager* instance;
 };
