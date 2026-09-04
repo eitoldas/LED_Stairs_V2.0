@@ -9,7 +9,7 @@
  * WiFi credentials — update before flashing
  */
 
-constexpr char WIFI_SSID[]     = "REDACTED Mesh";
+constexpr char WIFI_SSID[]     = "REDACTED";
 constexpr char WIFI_PASSWORD[] = "REDACTED";
 
 /*
