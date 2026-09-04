@@ -5,10 +5,10 @@
 
 StairsManager* StairsManager::instance = nullptr;
 
-void StairsManager::init()
+void StairsManager::init(NetworkManager* networkManager)
 {
     instance = this;
-    Serial.begin(115200);
+    m_networkManager = networkManager;
 
     ledDriver.init(LED_PINS, NUM_LEDS);
     animationEngine.init(&ledDriver, NUM_LEDS);
@@ -29,29 +29,33 @@ void StairsManager::update()
 
     if (m_sensorsBlocked)
     {
+        sensorDriver.clearPending();
         return;
     }
 
-    if (m_animationPending)
+    sensorDriver.update();
+
+    if (!m_animationPending)
     {
-        m_animationPending = false;
-
-        AnimationDirection direction = (m_pendingSensor == SensorID::SENSOR_A)
-            ? AnimationDirection::Up
-            : AnimationDirection::Down;
-
-        animationEngine.scheduleRun(direction, millis());
+        return;
     }
+
+    m_animationPending = false;
+
+    if (m_networkManager != nullptr && !m_networkManager->isLightsAllowed())
+    {
+        return;
+    }
+
+    AnimationDirection direction = (m_pendingSensor == SensorID::SENSOR_A)
+        ? AnimationDirection::Up
+        : AnimationDirection::Down;
+
+    animationEngine.scheduleRun(direction, millis());
 }
 
 void StairsManager::sensorTriggered(SensorID sensor)
 {
-    // ISR context — flag only, no Serial or other heavy work
-    if (instance == nullptr || instance->m_sensorsBlocked)
-    {
-        return;
-    }
-
     instance->m_pendingSensor    = sensor;
     instance->m_animationPending = true;
 }
