@@ -5,12 +5,11 @@
 
 #include <Arduino.h>
 
-/*
- * WiFi credentials — update before flashing
- */
-
-constexpr char WIFI_SSID[]     = "REDACTED";
-constexpr char WIFI_PASSWORD[] = "REDACTED";
+#if __has_include("secrets.h")
+    #include "secrets.h"
+#else
+    #error "Copy include/secrets.example.h to include/secrets.h and fill in your WiFi credentials."
+#endif
 
 /*
  * NTP / timezone (UK with automatic BST)
