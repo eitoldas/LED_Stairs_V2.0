@@ -15,6 +15,8 @@ public:
 private:
     static void sensorTriggered(SensorID sensor);
 
+    bool isWithinExitWindow(uint32_t now) const;
+
     NetworkManager*  m_networkManager = nullptr;
     LEDDriver        ledDriver;
     SensorDriver     sensorDriver;
@@ -24,7 +26,8 @@ private:
     volatile SensorID m_pendingSensor    = SensorID::SENSOR_A;
     volatile bool     m_sensorsBlocked   = true;
 
-    SensorID m_runSensor = SensorID::SENSOR_A;
+    SensorID m_runSensor    = SensorID::SENSOR_A;
+    uint32_t m_runStartedAt = 0;
 
     static StairsManager* instance;
 };

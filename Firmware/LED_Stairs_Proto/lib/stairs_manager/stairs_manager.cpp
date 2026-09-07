@@ -42,9 +42,13 @@ void StairsManager::update()
 
     m_animationPending = false;
 
-    // The far sensor fires as the walker exits. Running the opposite direction
-    // from there would relight the stairs behind them and stretch the hold.
-    if (animationEngine.isRunActive() && m_pendingSensor != m_runSensor)
+    uint32_t now = millis();
+
+    // The far sensor trips as the sweep finishes, so a trigger from it around
+    // that moment is the same walker leaving rather than a new one arriving.
+    if (animationEngine.isRunActive()
+        && m_pendingSensor != m_runSensor
+        && isWithinExitWindow(now))
     {
         return;
     }
@@ -54,13 +58,22 @@ void StairsManager::update()
         return;
     }
 
-    m_runSensor = m_pendingSensor;
+    m_runSensor    = m_pendingSensor;
+    m_runStartedAt = now;
 
     AnimationDirection direction = (m_pendingSensor == SensorID::SENSOR_A)
         ? AnimationDirection::Up
         : AnimationDirection::Down;
 
-    animationEngine.scheduleRun(direction, millis());
+    animationEngine.scheduleRun(direction, now);
+}
+
+bool StairsManager::isWithinExitWindow(uint32_t now) const
+{
+    uint32_t expectedAt = m_runStartedAt + animationEngine.sweepDurationMs();
+    int32_t  offset     = (int32_t)(now - expectedAt);
+
+    return abs(offset) <= (int32_t)EXIT_OFFSET_MS;
 }
 
 void StairsManager::sensorTriggered(SensorID sensor)
