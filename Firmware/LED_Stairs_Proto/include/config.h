@@ -24,7 +24,7 @@ constexpr uint8_t LED_PINS[NUM_LEDS] =
 constexpr uint8_t SENSOR_A_PIN = 17;
 constexpr uint8_t SENSOR_B_PIN = 18;
 
-constexpr uint32_t RETRIGGER_COOLDOWN_MS = 3000;
+constexpr uint32_t RETRIGGER_COOLDOWN_MS = 2000;
 
 /*
  * Far sensor exit window. A walker trips the opposite sensor as the light sweep
