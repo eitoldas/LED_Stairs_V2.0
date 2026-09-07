@@ -28,6 +28,7 @@ private:
 
     SensorID m_runSensor    = SensorID::SENSOR_A;
     uint32_t m_runStartedAt = 0;
+    bool     m_exitSeen     = false;
 
     static StairsManager* instance;
 };
