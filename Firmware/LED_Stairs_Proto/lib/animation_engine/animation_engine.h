@@ -39,6 +39,7 @@ public:
     void startStartup();
 
     bool isStartupComplete() const;
+    bool isRunActive() const;
 
 private:
     enum class StartupPhase

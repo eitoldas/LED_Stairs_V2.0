@@ -42,10 +42,19 @@ void StairsManager::update()
 
     m_animationPending = false;
 
+    // The far sensor fires as the walker exits. Running the opposite direction
+    // from there would relight the stairs behind them and stretch the hold.
+    if (animationEngine.isRunActive() && m_pendingSensor != m_runSensor)
+    {
+        return;
+    }
+
     if (m_networkManager != nullptr && !m_networkManager->isLightsAllowed())
     {
         return;
     }
+
+    m_runSensor = m_pendingSensor;
 
     AnimationDirection direction = (m_pendingSensor == SensorID::SENSOR_A)
         ? AnimationDirection::Up

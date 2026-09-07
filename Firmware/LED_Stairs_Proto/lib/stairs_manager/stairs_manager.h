@@ -24,5 +24,7 @@ private:
     volatile SensorID m_pendingSensor    = SensorID::SENSOR_A;
     volatile bool     m_sensorsBlocked   = true;
 
+    SensorID m_runSensor = SensorID::SENSOR_A;
+
     static StairsManager* instance;
 };

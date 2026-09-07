@@ -79,6 +79,19 @@ bool AnimationEngine::isStartupComplete() const
     return m_startupState == StartupState::Complete;
 }
 
+bool AnimationEngine::isRunActive() const
+{
+    for (uint8_t i = 0; i < m_numLeds; i++)
+    {
+        if (m_schedules[i].active)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void AnimationEngine::mergeSchedule(uint8_t led, uint32_t turnOnAt, uint32_t turnOffAt)
 {
     if (led >= m_numLeds)
