@@ -39,6 +39,9 @@ public:
     void startStartup();
 
     bool isStartupComplete() const;
+    bool isRunActive() const;
+
+    uint32_t sweepDurationMs() const;
 
 private:
     enum class StartupPhase

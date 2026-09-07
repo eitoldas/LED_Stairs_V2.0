@@ -24,6 +24,14 @@ constexpr uint8_t LED_PINS[NUM_LEDS] =
 constexpr uint8_t SENSOR_A_PIN = 17;
 constexpr uint8_t SENSOR_B_PIN = 18;
 
-constexpr uint32_t RETRIGGER_COOLDOWN_MS = 5000;
+constexpr uint32_t RETRIGGER_COOLDOWN_MS = 2000;
+
+/*
+ * Far sensor exit window. A walker trips the opposite sensor as the light sweep
+ * finishes, so a trigger this far either side of that moment is taken as the
+ * same walker leaving. Anything outside the window is treated as someone new.
+ */
+
+constexpr uint32_t EXIT_OFFSET_MS = 4000;
 
 #endif

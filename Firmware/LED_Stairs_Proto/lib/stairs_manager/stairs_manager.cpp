@@ -42,16 +42,42 @@ void StairsManager::update()
 
     m_animationPending = false;
 
+    uint32_t now = millis();
+
+    // The far sensor trips as the sweep finishes, so the first trigger from it
+    // around that moment is the same walker leaving. Once that crossing is
+    // accounted for, anything further is someone else.
+    if (animationEngine.isRunActive()
+        && m_pendingSensor != m_runSensor
+        && !m_exitSeen
+        && isWithinExitWindow(now))
+    {
+        m_exitSeen = true;
+        return;
+    }
+
     if (m_networkManager != nullptr && !m_networkManager->isLightsAllowed())
     {
         return;
     }
 
+    m_runSensor    = m_pendingSensor;
+    m_runStartedAt = now;
+    m_exitSeen     = false;
+
     AnimationDirection direction = (m_pendingSensor == SensorID::SENSOR_A)
         ? AnimationDirection::Up
         : AnimationDirection::Down;
 
-    animationEngine.scheduleRun(direction, millis());
+    animationEngine.scheduleRun(direction, now);
+}
+
+bool StairsManager::isWithinExitWindow(uint32_t now) const
+{
+    uint32_t expectedAt = m_runStartedAt + animationEngine.sweepDurationMs();
+    int32_t  offset     = (int32_t)(now - expectedAt);
+
+    return abs(offset) <= (int32_t)EXIT_OFFSET_MS;
 }
 
 void StairsManager::sensorTriggered(SensorID sensor)

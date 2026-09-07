@@ -9,8 +9,8 @@
  * Run-up / run-down animation
  */
 
-constexpr uint16_t ANIM_STEP_DELAY_MS   = 400;
-constexpr uint16_t STAIR_HOLD_DELAY_MS  = 2000;
+constexpr uint16_t ANIM_STEP_DELAY_MS   = 480;
+constexpr uint16_t STAIR_HOLD_DELAY_MS  = 3000;
 
 /*
  * Blink animation
