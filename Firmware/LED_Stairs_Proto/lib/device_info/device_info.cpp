@@ -61,3 +61,13 @@ const char* DeviceInfo::resetReason() const
 {
     return m_resetReason;
 }
+
+void DeviceInfo::print(Print& out) const
+{
+    out.println();
+    out.printf("Hardware  %s\n", HARDWARE_VERSION);
+    out.printf("Firmware  %s\n", FIRMWARE_VERSION);
+    out.printf("Built     %s\n", BUILD_TIMESTAMP);
+    out.printf("Device    %s\n", m_deviceId);
+    out.printf("Reset     %s\n", m_resetReason);
+}

@@ -16,6 +16,8 @@ public:
     const char* deviceId() const;
     const char* resetReason() const;
 
+    void print(Print& out) const;
+
 private:
     char        m_deviceId[18] = {};
     const char* m_resetReason  = "Unknown";
