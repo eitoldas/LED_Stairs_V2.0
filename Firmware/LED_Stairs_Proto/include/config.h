@@ -40,4 +40,27 @@ constexpr uint32_t EXIT_OFFSET_MS = 4000;
 
 constexpr uint32_t SERIAL_BAUD = 115200;
 
+/*
+ * Current sensor (CH70120CB3PR: hall effect, 3.3 V supply, bidirectional +/-20 A,
+ * 66 mV per amp around a fixed 1.65 V zero-current output).
+ *
+ * VIOUT must land on an ADC1 pin. GPIO21 has no ADC on the ESP32-S3, and ADC2
+ * pins cannot be read while WiFi is active. GPIO2 and GPIO8 are the free ones.
+ */
+
+constexpr uint8_t CURRENT_SENSE_PIN = 2;
+
+constexpr uint16_t CURRENT_SENSITIVITY_MV_PER_A = 66;
+constexpr uint16_t CURRENT_ZERO_MV              = 1650;
+
+constexpr uint8_t  CURRENT_SAMPLE_COUNT       = 16;
+constexpr uint32_t CURRENT_SAMPLE_INTERVAL_MS = 100;
+constexpr uint32_t CURRENT_REPORT_INTERVAL_MS = 500;
+
+/*
+ * Supply voltage feeding the LED strips. Only used to turn amps into watts.
+ */
+
+constexpr float LOAD_VOLTAGE = 12.0f;
+
 #endif
