@@ -1,4 +1,5 @@
 #include <WiFi.h>
+#include <esp_sntp.h>
 #include <time.h>
 
 #include "network_config.h"
@@ -19,34 +20,30 @@ bool NTPDriver::sync()
         return false;
     }
 
+    // SNTP only re-polls every few hours on its own, so ask for a fresh
+    // answer now and wait for it to arrive.
+    sntp_set_sync_status(SNTP_SYNC_STATUS_RESET);
+    sntp_restart();
+
+    uint32_t start = millis();
+    while (sntp_get_sync_status() != SNTP_SYNC_STATUS_COMPLETED)
+    {
+        if (millis() - start >= NTP_SYNC_TIMEOUT_MS)
+        {
+            return false;
+        }
+
+        delay(10);
+    }
+
     struct tm timeinfo {};
-    if (!::getLocalTime(&timeinfo, NTP_SYNC_TIMEOUT_MS))
+    if (!::getLocalTime(&timeinfo, 0) || timeinfo.tm_year < (2020 - 1900))
     {
         return false;
     }
 
-    if (timeinfo.tm_year < (2020 - 1900))
-    {
-        return false;
-    }
-
-    m_synced     = true;
-    m_lastSyncMs = millis();
+    m_synced = true;
     return true;
-}
-
-void NTPDriver::update(uint32_t resyncIntervalMs)
-{
-    if (!m_synced)
-    {
-        sync();
-        return;
-    }
-
-    if (millis() - m_lastSyncMs >= resyncIntervalMs)
-    {
-        sync();
-    }
 }
 
 bool NTPDriver::isSynced() const
