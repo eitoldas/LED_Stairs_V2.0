@@ -1,3 +1,4 @@
+#include <ArduinoOTA.h>
 #include <time.h>
 
 #include "network_config.h"
@@ -14,10 +15,35 @@ void NetworkManager::update()
 {
     m_wifiDriver.update();
 
-    if (m_wifiDriver.isConnected() && isRefreshDue())
+    if (!m_wifiDriver.isConnected())
+    {
+        return;
+    }
+
+    if (!m_otaStarted)
+    {
+        startOta();
+    }
+
+    ArduinoOTA.handle();
+
+    if (isRefreshDue())
     {
         refresh();
     }
+}
+
+void NetworkManager::startOta()
+{
+    ArduinoOTA.setHostname(OTA_HOSTNAME);
+    ArduinoOTA.setPassword(OTA_PASSWORD);
+
+    ArduinoOTA.onStart([]() { Serial.println("OTA: update starting"); });
+    ArduinoOTA.onEnd([]()   { Serial.println("OTA: update done, rebooting"); });
+    ArduinoOTA.onError([](ota_error_t error) { Serial.printf("OTA: update failed (%u)\n", error); });
+
+    ArduinoOTA.begin();
+    m_otaStarted = true;
 }
 
 bool NetworkManager::isTimeSynced() const

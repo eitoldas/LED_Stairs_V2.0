@@ -16,6 +16,7 @@ public:
 private:
     bool isRefreshDue() const;
     void refresh();
+    void startOta();
 
     bool isWithinNightWindow(const struct tm& timeinfo) const;
 
@@ -26,4 +27,6 @@ private:
     int      m_lastRefreshDay = -1;
     bool     m_hasAttempted   = false;
     uint32_t m_lastAttemptMs  = 0;
+
+    bool m_otaStarted = false;
 };
