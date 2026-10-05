@@ -27,6 +27,13 @@ constexpr uint32_t NTP_SYNC_TIMEOUT_MS = 10000UL;
 constexpr uint32_t WIFI_RECONNECT_INTERVAL_MS = 30000UL;
 
 /*
+ * Over-the-air updates. The board answers on <OTA_HOSTNAME>.local, and an
+ * upload is only accepted with OTA_PASSWORD from secrets.h.
+ */
+
+constexpr char OTA_HOSTNAME[] = "led-stairs";
+
+/*
  * Daily refresh. Once a day at this local time, fetch fresh NTP time and then
  * the day's sunrise and sunset. It also runs once as soon as WiFi first connects.
  * A failed refresh is retried after the retry interval.
