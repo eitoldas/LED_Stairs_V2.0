@@ -64,6 +64,17 @@ constexpr uint32_t SUN_API_TIMEOUT_MS = 5000UL;
  * Used when AUTOMATIC_DAYLIGHT is off, or until the first sun lookup succeeds.
  */
 
+/*
+ * Test builds (the esp32-s3-devkitc-1-test-ota environment) ignore the night
+ * window entirely, so the stairs respond at any time of day.
+ */
+
+#ifdef STAIRS_TEST_MODE
+constexpr bool IGNORE_NIGHT_WINDOW = true;
+#else
+constexpr bool IGNORE_NIGHT_WINDOW = false;
+#endif
+
 constexpr uint8_t NIGHT_START_HOUR   = 20;
 constexpr uint8_t NIGHT_START_MINUTE = 0;
 constexpr uint8_t NIGHT_END_HOUR     = 6;

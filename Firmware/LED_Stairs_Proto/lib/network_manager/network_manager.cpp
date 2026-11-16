@@ -132,6 +132,11 @@ bool NetworkManager::isWithinNightWindow(const struct tm& timeinfo) const
 
 bool NetworkManager::isLightsAllowed() const
 {
+    if (IGNORE_NIGHT_WINDOW)
+    {
+        return true;
+    }
+
     if (!m_ntpDriver.isSynced())
     {
         return true;

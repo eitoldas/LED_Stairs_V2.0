@@ -27,6 +27,14 @@ constexpr uint8_t SENSOR_B_PIN = 18;
 constexpr uint32_t RETRIGGER_COOLDOWN_MS = 2000;
 
 /*
+ * How long a sensor output must stay high before it counts as a trigger.
+ * Filters out electrical noise spikes (e.g. a gas hob igniter) that would
+ * otherwise look like motion.
+ */
+
+constexpr uint32_t SENSOR_CONFIRM_MS = 50;
+
+/*
  * Far sensor exit window. A walker trips the opposite sensor as the light sweep
  * finishes, so a trigger this far either side of that moment is taken as the
  * same walker leaving. Anything outside the window is treated as someone new.

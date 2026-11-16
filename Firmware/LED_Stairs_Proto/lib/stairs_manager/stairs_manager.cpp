@@ -13,7 +13,7 @@ void StairsManager::init(NetworkManager* networkManager)
     ledDriver.init(LED_PINS, NUM_LEDS);
     animationEngine.init(&ledDriver, NUM_LEDS);
 
-    sensorDriver.init(SENSOR_A_PIN, SENSOR_B_PIN, RETRIGGER_COOLDOWN_MS, sensorTriggered);
+    sensorDriver.init(SENSOR_A_PIN, SENSOR_B_PIN, RETRIGGER_COOLDOWN_MS, SENSOR_CONFIRM_MS, sensorTriggered);
 
     animationEngine.startStartup();
 }
