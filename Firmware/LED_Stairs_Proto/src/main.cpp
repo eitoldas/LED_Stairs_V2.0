@@ -3,6 +3,7 @@
 #include "config.h"
 #include "current_sensor.h"
 #include "device_info.h"
+#include "network_config.h"
 #include "network_manager.h"
 #include "stairs_manager.h"
 
@@ -17,6 +18,11 @@ void setup()
 
     deviceInfo.init();
     deviceInfo.print(Serial);
+
+    if (IGNORE_NIGHT_WINDOW)
+    {
+        Serial.println("TEST BUILD: night window ignored, lights respond at any time");
+    }
 
     currentSensor.init(CURRENT_SENSE_PIN, LOAD_VOLTAGE);
 
