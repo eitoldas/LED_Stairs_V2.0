@@ -23,6 +23,7 @@ public:
 
     void update();
     void clearPending();
+    void setCooldown(uint32_t cooldown);
 
 private:
     static void IRAM_ATTR sensorAISR();

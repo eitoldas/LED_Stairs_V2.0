@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #include "config.h"
+#include "settings_store.h"
 #include "stairs_manager.h"
 
 StairsManager* StairsManager::instance = nullptr;
@@ -13,13 +14,17 @@ void StairsManager::init(NetworkManager* networkManager)
     ledDriver.init(LED_PINS, NUM_LEDS);
     animationEngine.init(&ledDriver, NUM_LEDS);
 
-    sensorDriver.init(SENSOR_A_PIN, SENSOR_B_PIN, RETRIGGER_COOLDOWN_MS, SENSOR_CONFIRM_MS, sensorTriggered);
+    sensorDriver.init(SENSOR_A_PIN, SENSOR_B_PIN, Settings.get().retriggerCooldownMs, SENSOR_CONFIRM_MS, sensorTriggered);
 
     animationEngine.startStartup();
 }
 
 void StairsManager::update()
 {
+    const StairSettings& settings = Settings.get();
+    animationEngine.setTiming(settings.stepDelayMs, settings.holdDelayMs);
+    sensorDriver.setCooldown(settings.retriggerCooldownMs);
+
     animationEngine.update();
 
     if (m_sensorsBlocked && animationEngine.isStartupComplete())
@@ -77,7 +82,7 @@ bool StairsManager::isWithinExitWindow(uint32_t now) const
     uint32_t expectedAt = m_runStartedAt + animationEngine.sweepDurationMs();
     int32_t  offset     = (int32_t)(now - expectedAt);
 
-    return abs(offset) <= (int32_t)EXIT_OFFSET_MS;
+    return abs(offset) <= (int32_t)Settings.get().exitOffsetMs;
 }
 
 void StairsManager::sensorTriggered(SensorID sensor)

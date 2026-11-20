@@ -43,6 +43,8 @@ public:
 
     uint32_t sweepDurationMs() const;
 
+    void setTiming(uint16_t stepDelayMs, uint16_t holdDelayMs);
+
 private:
     enum class StartupPhase
     {
@@ -63,6 +65,9 @@ private:
 
     LEDDriver* m_ledDriver = nullptr;
     uint8_t    m_numLeds   = 0;
+
+    uint16_t m_stepDelayMs = ANIM_STEP_DELAY_MS;
+    uint16_t m_holdDelayMs = STAIR_HOLD_DELAY_MS;
 
     LEDSchedule m_schedules[NUM_LEDS];
 

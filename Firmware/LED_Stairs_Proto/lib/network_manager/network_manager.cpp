@@ -4,6 +4,7 @@
 #include "logger.h"
 #include "network_config.h"
 #include "network_manager.h"
+#include "settings_store.h"
 
 void NetworkManager::init()
 {
@@ -87,7 +88,7 @@ void NetworkManager::refresh()
         return;
     }
 
-    if (AUTOMATIC_DAYLIGHT && !m_sunTimesDriver.fetch())
+    if (Settings.get().automaticDaylight && !m_sunTimesDriver.fetch())
     {
         Log.println("Daily refresh: sun times lookup failed, retrying later");
         return;
@@ -97,7 +98,7 @@ void NetworkManager::refresh()
     m_ntpDriver.getLocalTime(&timeinfo);
     m_lastRefreshDay = timeinfo.tm_yday;
 
-    if (AUTOMATIC_DAYLIGHT)
+    if (Settings.get().automaticDaylight)
     {
         uint16_t sunrise = m_sunTimesDriver.sunriseMinutes();
         uint16_t sunset  = m_sunTimesDriver.sunsetMinutes();
@@ -114,10 +115,12 @@ void NetworkManager::refresh()
 bool NetworkManager::isWithinNightWindow(const struct tm& timeinfo) const
 {
     uint16_t nowMinutes   = (uint16_t)(timeinfo.tm_hour * 60 + timeinfo.tm_min);
-    uint16_t startMinutes = (uint16_t)(NIGHT_START_HOUR * 60 + NIGHT_START_MINUTE);
-    uint16_t endMinutes   = (uint16_t)(NIGHT_END_HOUR * 60 + NIGHT_END_MINUTE);
+    const StairSettings& settings = Settings.get();
 
-    if (AUTOMATIC_DAYLIGHT && m_sunTimesDriver.hasTimes())
+    uint16_t startMinutes = (uint16_t)(settings.nightStartHour * 60 + settings.nightStartMinute);
+    uint16_t endMinutes   = (uint16_t)(settings.nightEndHour * 60 + settings.nightEndMinute);
+
+    if (settings.automaticDaylight && m_sunTimesDriver.hasTimes())
     {
         startMinutes = m_sunTimesDriver.sunsetMinutes();
         endMinutes   = m_sunTimesDriver.sunriseMinutes();

@@ -6,6 +6,7 @@
 #include "logger.h"
 #include "network_config.h"
 #include "network_manager.h"
+#include "settings_store.h"
 #include "stairs_manager.h"
 
 CurrentSensor  currentSensor;
@@ -25,6 +26,8 @@ void setup()
     {
         Log.println("TEST BUILD: night window ignored, lights respond at any time");
     }
+
+    Settings.init();
 
     currentSensor.init(CURRENT_SENSE_PIN, LOAD_VOLTAGE);
 
