@@ -7,6 +7,7 @@
 #include "network_config.h"
 #include "settings_store.h"
 #include "web_interface.h"
+#include "web_page.h"
 
 static String clockText(uint16_t minutes)
 {
@@ -90,6 +91,7 @@ void WebInterface::update()
 
 void WebInterface::start()
 {
+    m_server.on("/",                      HTTP_GET,  [this]() { handleRoot(); });
     m_server.on("/api/status",            HTTP_GET,  [this]() { handleStatus(); });
     m_server.on("/api/settings",          HTTP_GET,  [this]() { handleGetSettings(); });
     m_server.on("/api/settings",          HTTP_POST, [this]() { handleSaveSettings(); });
@@ -102,6 +104,11 @@ void WebInterface::start()
     m_started = true;
     Log.printf("Web: serving on http://%s.local (%s)", OTA_HOSTNAME, WiFi.localIP().toString().c_str());
     Log.println();
+}
+
+void WebInterface::handleRoot()
+{
+    m_server.send_P(200, "text/html", WEB_PAGE);
 }
 
 void WebInterface::handleStatus()

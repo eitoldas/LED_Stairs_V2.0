@@ -24,6 +24,7 @@ public:
 private:
     void start();
 
+    void handleRoot();
     void handleStatus();
     void handleGetSettings();
     void handleSaveSettings();
