@@ -6,7 +6,8 @@
 #include <Arduino.h>
 
 /*
- * Run-up / run-down animation
+ * Run-up / run-down animation. Defaults only; the live values come from
+ * the settings store and can be changed at runtime.
  */
 
 constexpr uint16_t ANIM_STEP_DELAY_MS   = 480;

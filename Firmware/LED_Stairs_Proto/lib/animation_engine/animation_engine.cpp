@@ -33,11 +33,11 @@ void AnimationEngine::scheduleRun(AnimationDirection direction, uint32_t now)
             ? i
             : (m_numLeds - 1 - i);
 
-        uint32_t turnOnAt = now + (uint32_t)i * ANIM_STEP_DELAY_MS;
+        uint32_t turnOnAt = now + (uint32_t)i * m_stepDelayMs;
         uint32_t turnOffAt = now
             + sweepDurationMs()
-            + STAIR_HOLD_DELAY_MS
-            + (uint32_t)i * ANIM_STEP_DELAY_MS;
+            + m_holdDelayMs
+            + (uint32_t)i * m_stepDelayMs;
 
         mergeSchedule(led, turnOnAt, turnOffAt);
     }
@@ -94,7 +94,13 @@ bool AnimationEngine::isRunActive() const
 
 uint32_t AnimationEngine::sweepDurationMs() const
 {
-    return (uint32_t)(m_numLeds - 1) * ANIM_STEP_DELAY_MS;
+    return (uint32_t)(m_numLeds - 1) * m_stepDelayMs;
+}
+
+void AnimationEngine::setTiming(uint16_t stepDelayMs, uint16_t holdDelayMs)
+{
+    m_stepDelayMs = stepDelayMs;
+    m_holdDelayMs = holdDelayMs;
 }
 
 void AnimationEngine::mergeSchedule(uint8_t led, uint32_t turnOnAt, uint32_t turnOffAt)

@@ -90,6 +90,11 @@ void SensorDriver::checkSensor(SensorID sensor,
     }
 }
 
+void SensorDriver::setCooldown(uint32_t cooldown)
+{
+    m_cooldown = cooldown;
+}
+
 void SensorDriver::clearPending()
 {
     m_irqPendingA = false;
