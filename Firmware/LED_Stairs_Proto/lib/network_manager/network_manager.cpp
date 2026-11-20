@@ -1,6 +1,7 @@
 #include <ArduinoOTA.h>
 #include <time.h>
 
+#include "logger.h"
 #include "network_config.h"
 #include "network_manager.h"
 
@@ -38,9 +39,9 @@ void NetworkManager::startOta()
     ArduinoOTA.setHostname(OTA_HOSTNAME);
     ArduinoOTA.setPassword(OTA_PASSWORD);
 
-    ArduinoOTA.onStart([]() { Serial.println("OTA: update starting"); });
-    ArduinoOTA.onEnd([]()   { Serial.println("OTA: update done, rebooting"); });
-    ArduinoOTA.onError([](ota_error_t error) { Serial.printf("OTA: update failed (%u)\n", error); });
+    ArduinoOTA.onStart([]() { Log.println("OTA: update starting"); });
+    ArduinoOTA.onEnd([]()   { Log.println("OTA: update done, rebooting"); });
+    ArduinoOTA.onError([](ota_error_t error) { Log.printf("OTA: update failed (%u)\n", error); });
 
     ArduinoOTA.begin();
     m_otaStarted = true;
@@ -82,13 +83,13 @@ void NetworkManager::refresh()
 
     if (!m_ntpDriver.sync())
     {
-        Serial.println("Daily refresh: NTP sync failed, retrying later");
+        Log.println("Daily refresh: NTP sync failed, retrying later");
         return;
     }
 
     if (AUTOMATIC_DAYLIGHT && !m_sunTimesDriver.fetch())
     {
-        Serial.println("Daily refresh: sun times lookup failed, retrying later");
+        Log.println("Daily refresh: sun times lookup failed, retrying later");
         return;
     }
 
@@ -101,12 +102,12 @@ void NetworkManager::refresh()
         uint16_t sunrise = m_sunTimesDriver.sunriseMinutes();
         uint16_t sunset  = m_sunTimesDriver.sunsetMinutes();
 
-        Serial.printf("Daily refresh: sunrise %02d:%02d, sunset %02d:%02d\n",
+        Log.printf("Daily refresh: sunrise %02d:%02d, sunset %02d:%02d\n",
             sunrise / 60, sunrise % 60, sunset / 60, sunset % 60);
     }
     else
     {
-        Serial.println("Daily refresh: time synced");
+        Log.println("Daily refresh: time synced");
     }
 }
 

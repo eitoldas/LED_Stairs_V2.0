@@ -1,5 +1,6 @@
 #include <Arduino.h>
 
+#include "logger.h"
 #include "sensor_driver.h"
 
 SensorCallback SensorDriver::m_callback = nullptr;
@@ -65,7 +66,7 @@ void SensorDriver::checkSensor(SensorID sensor,
     if (digitalRead(pin) == LOW)
     {
         irqPending = false;
-        Serial.printf("Sensor %c: ignored noise spike\n", sensor == SensorID::SENSOR_A ? 'A' : 'B');
+        Log.printf("Sensor %c: ignored noise spike\n", sensor == SensorID::SENSOR_A ? 'A' : 'B');
         return;
     }
 
