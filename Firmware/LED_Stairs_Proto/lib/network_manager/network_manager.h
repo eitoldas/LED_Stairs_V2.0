@@ -12,6 +12,11 @@ public:
 
     bool isLightsAllowed() const;
     bool isTimeSynced() const;
+    bool getLocalTime(struct tm* timeinfo) const;
+
+    bool     hasSunTimes() const;
+    uint16_t sunriseMinutes() const;
+    uint16_t sunsetMinutes() const;
 
 private:
     bool isRefreshDue() const;

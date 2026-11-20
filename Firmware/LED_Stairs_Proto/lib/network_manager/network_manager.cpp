@@ -53,6 +53,26 @@ bool NetworkManager::isTimeSynced() const
     return m_ntpDriver.isSynced();
 }
 
+bool NetworkManager::getLocalTime(struct tm* timeinfo) const
+{
+    return m_ntpDriver.isSynced() && m_ntpDriver.getLocalTime(timeinfo);
+}
+
+bool NetworkManager::hasSunTimes() const
+{
+    return m_sunTimesDriver.hasTimes();
+}
+
+uint16_t NetworkManager::sunriseMinutes() const
+{
+    return m_sunTimesDriver.sunriseMinutes();
+}
+
+uint16_t NetworkManager::sunsetMinutes() const
+{
+    return m_sunTimesDriver.sunsetMinutes();
+}
+
 bool NetworkManager::isRefreshDue() const
 {
     if (m_hasAttempted && millis() - m_lastAttemptMs < REFRESH_RETRY_INTERVAL_MS)
