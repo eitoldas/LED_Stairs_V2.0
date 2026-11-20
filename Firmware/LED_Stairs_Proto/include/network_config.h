@@ -34,6 +34,12 @@ constexpr uint32_t WIFI_RECONNECT_INTERVAL_MS = 30000UL;
 constexpr char OTA_HOSTNAME[] = "led-stairs";
 
 /*
+ * Local web server, at http://<OTA_HOSTNAME>.local
+ */
+
+constexpr uint16_t WEB_SERVER_PORT = 80;
+
+/*
  * Daily refresh. Once a day at this local time, fetch fresh NTP time and then
  * the day's sunrise and sunset. It also runs once as soon as WiFi first connects.
  * A failed refresh is retried after the retry interval.
