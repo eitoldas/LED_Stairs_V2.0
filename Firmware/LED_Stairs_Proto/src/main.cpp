@@ -3,6 +3,7 @@
 #include "config.h"
 #include "current_sensor.h"
 #include "device_info.h"
+#include "logger.h"
 #include "network_config.h"
 #include "network_manager.h"
 #include "stairs_manager.h"
@@ -15,13 +16,14 @@ StairsManager  stairsManager;
 void setup()
 {
     Serial.begin(SERIAL_BAUD);
+    Log.init(Serial);
 
     deviceInfo.init();
-    deviceInfo.print(Serial);
+    deviceInfo.print(Log);
 
     if (IGNORE_NIGHT_WINDOW)
     {
-        Serial.println("TEST BUILD: night window ignored, lights respond at any time");
+        Log.println("TEST BUILD: night window ignored, lights respond at any time");
     }
 
     currentSensor.init(CURRENT_SENSE_PIN, LOAD_VOLTAGE);
@@ -43,7 +45,7 @@ void loop()
     if (now - lastReportMs >= CURRENT_REPORT_INTERVAL_MS)
     {
         lastReportMs = now;
-        Serial.printf("%4u mV  %6.2f A  %6.1f W\n",
+        Log.printf("%4u mV  %6.2f A  %6.1f W\n",
             currentSensor.millivolts(), currentSensor.amps(), currentSensor.watts());
     }
 }

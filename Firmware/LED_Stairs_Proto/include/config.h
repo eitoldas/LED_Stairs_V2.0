@@ -49,6 +49,14 @@ constexpr uint32_t EXIT_OFFSET_MS = 4000;
 constexpr uint32_t SERIAL_BAUD = 115200;
 
 /*
+ * Log history kept in memory (LOG_LINE_COUNT x LOG_LINE_LENGTH bytes of RAM).
+ * Longer lines are split across entries.
+ */
+
+constexpr size_t LOG_LINE_COUNT  = 100;
+constexpr size_t LOG_LINE_LENGTH = 96;
+
+/*
  * Current sensor (CH70120CB3PR: hall effect, 3.3 V supply, bidirectional +/-20 A,
  * 66 mV per amp around a fixed 1.65 V zero-current output).
  *
