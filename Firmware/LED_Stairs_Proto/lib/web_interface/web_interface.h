@@ -25,7 +25,13 @@ private:
     void start();
 
     void handleStatus();
+    void handleGetSettings();
+    void handleSaveSettings();
+    void handleRestoreDefaults();
     void handleNotFound();
+
+    void sendSettings();
+    void sendError(int code, const char* message);
 
     WebServer m_server{WEB_SERVER_PORT};
 
