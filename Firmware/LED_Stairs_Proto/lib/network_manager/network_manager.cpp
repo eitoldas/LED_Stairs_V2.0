@@ -48,6 +48,11 @@ void NetworkManager::startOta()
     m_otaStarted = true;
 }
 
+bool NetworkManager::isConnected() const
+{
+    return m_wifiDriver.isConnected();
+}
+
 bool NetworkManager::isTimeSynced() const
 {
     return m_ntpDriver.isSynced();

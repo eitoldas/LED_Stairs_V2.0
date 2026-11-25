@@ -80,7 +80,7 @@ void WebInterface::update()
 {
     if (!m_started)
     {
-        if (WiFi.status() == WL_CONNECTED)
+        if (m_networkManager->isConnected())
         {
             start();
         }

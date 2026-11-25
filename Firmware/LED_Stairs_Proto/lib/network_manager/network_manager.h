@@ -10,6 +10,7 @@ public:
     void init();
     void update();
 
+    bool isConnected() const;
     bool isLightsAllowed() const;
     bool isTimeSynced() const;
     bool getLocalTime(struct tm* timeinfo) const;
