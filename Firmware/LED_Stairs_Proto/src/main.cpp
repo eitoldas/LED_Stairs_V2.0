@@ -44,15 +44,4 @@ void loop()
     stairsManager.update();
     currentSensor.update();
     webInterface.update();
-
-    // Temporary: dump the sensor reading while it is being tested.
-    static uint32_t lastReportMs = 0;
-
-    uint32_t now = millis();
-    if (now - lastReportMs >= CURRENT_REPORT_INTERVAL_MS)
-    {
-        lastReportMs = now;
-        Log.printf("%4u mV  %6.2f A  %6.1f W\n",
-            currentSensor.millivolts(), currentSensor.amps(), currentSensor.watts());
-    }
 }
