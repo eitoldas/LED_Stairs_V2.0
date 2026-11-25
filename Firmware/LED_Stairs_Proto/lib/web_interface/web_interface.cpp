@@ -96,6 +96,7 @@ void WebInterface::start()
     m_server.on("/api/settings",          HTTP_GET,  [this]() { handleGetSettings(); });
     m_server.on("/api/settings",          HTTP_POST, [this]() { handleSaveSettings(); });
     m_server.on("/api/settings/defaults", HTTP_POST, [this]() { handleRestoreDefaults(); });
+    m_server.on("/api/logs",              HTTP_GET,  [this]() { handleLogs(); });
     m_server.onNotFound([this]() { handleNotFound(); });
 
     m_server.begin();
@@ -235,6 +236,39 @@ void WebInterface::sendError(int code, const char* message)
     String body;
     serializeJson(doc, body);
     m_server.send(code, "application/json", body);
+}
+
+// Returns the log lines a browser hasn't seen yet. Lines are numbered by the
+// logger's running total: a client passes back the "total" it last received
+// as ?since=, and gets only newer lines. If it fell further behind than the
+// buffer holds, "missed" says how many lines it lost.
+void WebInterface::handleLogs()
+{
+    uint32_t total  = Log.totalLines();
+    uint32_t count  = Log.lineCount();
+    uint32_t oldest = total - count;
+
+    uint32_t since = m_server.hasArg("since") ? strtoul(m_server.arg("since").c_str(), nullptr, 10) : 0;
+    if (since > total)
+    {
+        since = 0;
+    }
+
+    uint32_t first = (since > oldest) ? since : oldest;
+
+    JsonDocument doc;
+    doc["total"]  = total;
+    doc["missed"] = first - since;
+
+    JsonArray lines = doc["lines"].to<JsonArray>();
+    for (uint32_t number = first; number < total; number++)
+    {
+        lines.add(Log.line(number - oldest));
+    }
+
+    String body;
+    serializeJson(doc, body);
+    m_server.send(200, "application/json", body);
 }
 
 void WebInterface::handleNotFound()

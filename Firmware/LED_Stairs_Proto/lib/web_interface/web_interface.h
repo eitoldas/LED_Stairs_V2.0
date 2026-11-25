@@ -29,6 +29,7 @@ private:
     void handleGetSettings();
     void handleSaveSettings();
     void handleRestoreDefaults();
+    void handleLogs();
     void handleNotFound();
 
     void sendSettings();
