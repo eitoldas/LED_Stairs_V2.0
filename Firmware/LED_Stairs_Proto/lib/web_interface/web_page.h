@@ -33,13 +33,15 @@ static const char WEB_PAGE[] PROGMEM = R"html(<!doctype html>
   .on { background: var(--accent); color: #fff; }
   .warn { color: var(--accent); font-weight: 600; }
   label { display: grid; grid-template-columns: 1fr 140px; align-items: center; gap: 12px; margin-bottom: 10px; }
-  input[type=number], input[type=time] { width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); font: inherit; }
+  input[type=number], input[type=time], input[type=text] { width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); font: inherit; }
   input[type=checkbox] { justify-self: start; width: 20px; height: 20px; }
   .buttons { display: flex; gap: 10px; margin-top: 16px; }
   button { padding: 8px 16px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; cursor: pointer; }
   button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
   #message { margin-top: 12px; min-height: 1.4em; }
   .error { color: #c0392b; }
+  h3 { font-size: 14px; margin: 20px 0 4px; }
+  .hint { color: var(--muted); font-size: 13px; margin: 0 0 10px; }
 </style>
 </head>
 <body>
@@ -64,6 +66,13 @@ static const char WEB_PAGE[] PROGMEM = R"html(<!doctype html>
       <label>Automatic daylight <input type="checkbox" name="automaticDaylight"></label>
       <label>Night start <input type="time" name="nightStart" required></label>
       <label>Night end <input type="time" name="nightEnd" required></label>
+
+      <h3>Network</h3>
+      <p class="hint">Leave the IP address empty to use DHCP. Saving a change reconnects the board.</p>
+      <label>Fixed IP address <input type="text" name="staticIp" placeholder="DHCP" inputmode="decimal"></label>
+      <label>Gateway <input type="text" name="gateway" placeholder="e.g. 192.168.68.1" inputmode="decimal"></label>
+      <label>Subnet mask <input type="text" name="subnet" placeholder="e.g. 255.255.255.0" inputmode="decimal"></label>
+      <label>DNS server <input type="text" name="dns" placeholder="Same as gateway" inputmode="decimal"></label>
       <div class="buttons">
         <button type="submit" class="primary">Save</button>
         <button type="button" id="defaults">Restore defaults</button>
@@ -76,6 +85,8 @@ static const char WEB_PAGE[] PROGMEM = R"html(<!doctype html>
 <script>
 const form = document.getElementById("settings");
 const message = document.getElementById("message");
+const NETWORK_FIELDS = ["staticIp", "gateway", "subnet", "dns"];
+let saved = {};
 
 function showMessage(text, isError) {
   message.textContent = text;
@@ -133,6 +144,7 @@ async function loadStatus() {
 }
 
 function fillSettings(s) {
+  saved = s;
   for (const [key, value] of Object.entries(s)) {
     const input = form.elements[key];
     if (!input) continue;
@@ -144,7 +156,23 @@ async function loadSettings() {
   fillSettings(await (await fetch("/api/settings")).json());
 }
 
+function networkChanged(before, after) {
+  return NETWORK_FIELDS.some((key) => before[key] !== after[key]);
+}
+
+// After an address change the board drops off WiFi for a moment and may come
+// back somewhere else, so say where to find it and follow it if we can.
+function showReconnecting(s) {
+  const where = s.staticIp ? "at " + s.staticIp : "using DHCP";
+  showMessage("Saved. The board is reconnecting " + where + ". If this page stops updating, open http://led-stairs.local");
+  const byAddress = !location.hostname.endsWith(".local");
+  if (s.staticIp && byAddress && location.hostname !== s.staticIp) {
+    setTimeout(() => { location.href = "http://" + s.staticIp + "/"; }, 5000);
+  }
+}
+
 async function send(url, body) {
+  const before = saved;
   const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -154,6 +182,7 @@ async function send(url, body) {
   if (!response.ok) throw new Error(data.error || "Save failed");
   fillSettings(data);
   loadStatus();
+  return networkChanged(before, data);
 }
 
 form.addEventListener("submit", async (event) => {
@@ -167,9 +196,9 @@ form.addEventListener("submit", async (event) => {
     nightStart: form.elements.nightStart.value,
     nightEnd: form.elements.nightEnd.value,
   };
+  for (const key of NETWORK_FIELDS) body[key] = form.elements[key].value.trim();
   try {
-    await send("/api/settings", body);
-    showMessage("Saved");
+    if (await send("/api/settings", body)) showReconnecting(saved); else showMessage("Saved");
   } catch (e) {
     showMessage(e.message, true);
   }
@@ -178,8 +207,7 @@ form.addEventListener("submit", async (event) => {
 document.getElementById("defaults").addEventListener("click", async () => {
   if (!confirm("Restore all settings to their defaults?")) return;
   try {
-    await send("/api/settings/defaults");
-    showMessage("Defaults restored");
+    if (await send("/api/settings/defaults")) showReconnecting(saved); else showMessage("Defaults restored");
   } catch (e) {
     showMessage(e.message, true);
   }

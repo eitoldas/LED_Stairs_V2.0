@@ -46,6 +46,42 @@ static bool readNumber(JsonVariantConst value, uint32_t max, uint32_t& out)
     return true;
 }
 
+// A missing field leaves the address alone, an empty string clears it, and
+// anything else must be a dotted IPv4 address.
+static bool readAddress(JsonVariantConst value, uint32_t& out)
+{
+    if (value.isNull())
+    {
+        return true;
+    }
+
+    const char* text = value.as<const char*>();
+    if (text == nullptr)
+    {
+        return false;
+    }
+
+    if (text[0] == '\0')
+    {
+        out = 0;
+        return true;
+    }
+
+    IPAddress address;
+    if (!address.fromString(text))
+    {
+        return false;
+    }
+
+    out = (uint32_t)address;
+    return true;
+}
+
+static String addressText(uint32_t address)
+{
+    return (address != 0) ? IPAddress(address).toString() : String();
+}
+
 static bool readClock(JsonVariantConst value, uint8_t& hour, uint8_t& minute)
 {
     if (value.isNull())
@@ -191,7 +227,11 @@ void WebInterface::handleSaveSettings()
            && readNumber(doc["retriggerCooldownMs"], UINT32_MAX, settings.retriggerCooldownMs)
            && readNumber(doc["exitOffsetMs"],        UINT32_MAX, settings.exitOffsetMs)
            && readClock(doc["nightStart"], settings.nightStartHour, settings.nightStartMinute)
-           && readClock(doc["nightEnd"],   settings.nightEndHour,   settings.nightEndMinute);
+           && readClock(doc["nightEnd"],   settings.nightEndHour,   settings.nightEndMinute)
+           && readAddress(doc["staticIp"], settings.staticIp)
+           && readAddress(doc["gateway"],  settings.gateway)
+           && readAddress(doc["subnet"],   settings.subnet)
+           && readAddress(doc["dns"],      settings.dns);
 
     if (!doc["automaticDaylight"].isNull())
     {
@@ -229,6 +269,10 @@ void WebInterface::sendSettings()
     doc["automaticDaylight"]   = settings.automaticDaylight;
     doc["nightStart"]          = clockText(settings.nightStartHour, settings.nightStartMinute);
     doc["nightEnd"]            = clockText(settings.nightEndHour, settings.nightEndMinute);
+    doc["staticIp"]            = addressText(settings.staticIp);
+    doc["gateway"]             = addressText(settings.gateway);
+    doc["subnet"]              = addressText(settings.subnet);
+    doc["dns"]                 = addressText(settings.dns);
 
     String body;
     serializeJson(doc, body);

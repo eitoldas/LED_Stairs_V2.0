@@ -22,6 +22,12 @@ struct StairSettings
     uint8_t nightStartMinute;
     uint8_t nightEndHour;
     uint8_t nightEndMinute;
+
+    // Fixed network address; a zero ip means DHCP and the rest are ignored
+    uint32_t staticIp;
+    uint32_t gateway;
+    uint32_t subnet;
+    uint32_t dns;
 };
 
 class SettingsStore

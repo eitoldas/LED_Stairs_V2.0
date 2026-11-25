@@ -26,6 +26,10 @@ constexpr uint32_t NTP_SYNC_TIMEOUT_MS = 10000UL;
 
 constexpr uint32_t WIFI_RECONNECT_INTERVAL_MS = 30000UL;
 
+// Wait this long after the address settings change before reconnecting, so
+// the web page that saved them still gets its reply
+constexpr uint32_t WIFI_ADDRESS_CHANGE_DELAY_MS = 1000UL;
+
 /*
  * Over-the-air updates. The board answers on <OTA_HOSTNAME>.local, and an
  * upload is only accepted with OTA_PASSWORD from secrets.h.

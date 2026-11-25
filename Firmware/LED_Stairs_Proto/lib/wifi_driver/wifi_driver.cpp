@@ -25,19 +25,26 @@ static const char* reasonText(uint8_t reason)
     return (name != nullptr && name[0] != '\0') ? name : "UNKNOWN";
 }
 
-void WiFiDriver::init(const char* ssid, const char* password)
+void WiFiDriver::init(const char* ssid, const char* password, const WiFiAddress& address)
 {
     m_ssid     = ssid;
     m_password = password;
+    m_address  = address;
 
-    // Only note the reason here; the logging happens in update() on the main loop
+    // Only note what happened here; the logging happens in update() on the main loop
     WiFi.onEvent([this](arduino_event_id_t, arduino_event_info_t info)
     {
-        m_eventReason  = info.wifi_sta_disconnected.reason;
-        m_eventPending = true;
+        m_disconnectReason  = info.wifi_sta_disconnected.reason;
+        m_disconnectPending = true;
     }, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 
+    WiFi.onEvent([this](arduino_event_id_t, arduino_event_info_t)
+    {
+        m_connectPending = true;
+    }, ARDUINO_EVENT_WIFI_STA_GOT_IP);
+
     WiFi.mode(WIFI_STA);
+    applyAddress();
     WiFi.begin(m_ssid, m_password);
 
     m_lastAttemptMs  = millis();
@@ -46,18 +53,25 @@ void WiFiDriver::init(const char* ssid, const char* password)
 
 void WiFiDriver::update()
 {
-    if (m_eventPending)
+    if (m_disconnectPending)
     {
-        m_eventPending = false;
-        handleDisconnect(m_eventReason);
+        m_disconnectPending = false;
+        handleDisconnect(m_disconnectReason);
     }
 
-    if (WiFi.status() == WL_CONNECTED)
+    // Connected means "has an IP address", so a reconnect only counts once
+    // DHCP or the fixed address is in place
+    if (m_connectPending)
     {
+        m_connectPending = false;
         if (!m_online)
         {
             handleConnect();
         }
+    }
+
+    if (m_online || WiFi.status() == WL_CONNECTED)
+    {
         return;
     }
 
@@ -72,9 +86,35 @@ void WiFiDriver::update()
     WiFi.begin(m_ssid, m_password);
 }
 
+void WiFiDriver::setAddress(const WiFiAddress& address)
+{
+    m_address = address;
+    Log.println("WiFi: address settings changed, reconnecting");
+
+    m_online         = false;
+    m_connectPending = false;
+
+    WiFi.disconnect();
+    applyAddress();
+    WiFi.begin(m_ssid, m_password);
+
+    m_lastAttemptMs  = millis();
+    m_offlineSinceMs = m_lastAttemptMs;
+    m_failedAttempts = 0;
+}
+
 bool WiFiDriver::isConnected() const
 {
     return m_online;
+}
+
+// An all-zero address hands the interface back to DHCP
+void WiFiDriver::applyAddress()
+{
+    uint32_t dns = (m_address.dns != 0) ? m_address.dns : m_address.gateway;
+
+    WiFi.config(IPAddress(m_address.ip), IPAddress(m_address.gateway),
+                IPAddress(m_address.subnet), IPAddress(dns));
 }
 
 void WiFiDriver::handleDisconnect(uint8_t reason)
@@ -110,15 +150,16 @@ void WiFiDriver::handleConnect()
 {
     String took = durationText(millis() - m_offlineSinceMs);
     String ip   = WiFi.localIP().toString();
+    const char* mode = (m_address.ip != 0) ? "fixed" : "DHCP";
 
     if (m_hasConnected)
     {
-        Log.printf("WiFi: reconnected after %s, %lu failed attempts (%s, %d dBm)\n",
-            took.c_str(), (unsigned long)m_failedAttempts, ip.c_str(), WiFi.RSSI());
+        Log.printf("WiFi: reconnected after %s, %lu failed attempts (%s %s, %d dBm)\n",
+            took.c_str(), (unsigned long)m_failedAttempts, ip.c_str(), mode, WiFi.RSSI());
     }
     else
     {
-        Log.printf("WiFi: connected in %s (%s, %d dBm)\n", took.c_str(), ip.c_str(), WiFi.RSSI());
+        Log.printf("WiFi: connected in %s (%s %s, %d dBm)\n", took.c_str(), ip.c_str(), mode, WiFi.RSSI());
     }
 
     m_online       = true;

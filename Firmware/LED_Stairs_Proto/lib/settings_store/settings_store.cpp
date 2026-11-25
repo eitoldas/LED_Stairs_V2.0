@@ -26,6 +26,10 @@ void SettingsStore::init()
     loaded.nightStartMinute    = m_preferences.getUChar("nightStartM",   fallback.nightStartMinute);
     loaded.nightEndHour        = m_preferences.getUChar("nightEndH",     fallback.nightEndHour);
     loaded.nightEndMinute      = m_preferences.getUChar("nightEndM",     fallback.nightEndMinute);
+    loaded.staticIp            = m_preferences.getULong("staticIp",      fallback.staticIp);
+    loaded.gateway             = m_preferences.getULong("gateway",       fallback.gateway);
+    loaded.subnet              = m_preferences.getULong("subnet",        fallback.subnet);
+    loaded.dns                 = m_preferences.getULong("dns",           fallback.dns);
 
     if (isValid(loaded))
     {
@@ -60,6 +64,10 @@ bool SettingsStore::save(const StairSettings& settings)
     m_preferences.putUChar("nightStartM",  settings.nightStartMinute);
     m_preferences.putUChar("nightEndH",    settings.nightEndHour);
     m_preferences.putUChar("nightEndM",    settings.nightEndMinute);
+    m_preferences.putULong("staticIp",     settings.staticIp);
+    m_preferences.putULong("gateway",      settings.gateway);
+    m_preferences.putULong("subnet",       settings.subnet);
+    m_preferences.putULong("dns",          settings.dns);
 
     m_settings = settings;
     Log.println("Settings: saved");
@@ -86,6 +94,10 @@ StairSettings SettingsStore::defaults()
     settings.nightStartMinute    = NIGHT_START_MINUTE;
     settings.nightEndHour        = NIGHT_END_HOUR;
     settings.nightEndMinute      = NIGHT_END_MINUTE;
+    settings.staticIp            = 0;
+    settings.gateway             = 0;
+    settings.subnet              = 0;
+    settings.dns                 = 0;
 
     return settings;
 }
@@ -97,5 +109,6 @@ bool SettingsStore::isValid(const StairSettings& settings)
         && settings.retriggerCooldownMs <= 60000
         && settings.exitOffsetMs <= 30000
         && settings.nightStartHour < 24 && settings.nightStartMinute < 60
-        && settings.nightEndHour < 24   && settings.nightEndMinute < 60;
+        && settings.nightEndHour < 24   && settings.nightEndMinute < 60
+        && (settings.staticIp == 0 || (settings.gateway != 0 && settings.subnet != 0));
 }

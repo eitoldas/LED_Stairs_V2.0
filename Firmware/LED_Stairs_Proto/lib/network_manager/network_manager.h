@@ -23,6 +23,8 @@ private:
     bool isRefreshDue() const;
     void refresh();
     void startOta();
+    void checkAddressSettings();
+    static WiFiAddress addressFromSettings();
 
     bool isWithinNightWindow(const struct tm& timeinfo) const;
 
@@ -35,4 +37,8 @@ private:
     uint32_t m_lastAttemptMs  = 0;
 
     bool m_otaStarted = false;
+
+    WiFiAddress m_address;
+    bool        m_addressChangePending = false;
+    uint32_t    m_addressChangedMs     = 0;
 };
