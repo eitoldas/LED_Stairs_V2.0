@@ -18,9 +18,11 @@ static String durationText(uint32_t ms)
     return String(text);
 }
 
+// The WiFi library has no name for some codes the router can send
 static const char* reasonText(uint8_t reason)
 {
-    return WiFi.disconnectReasonName((wifi_err_reason_t)reason);
+    const char* name = WiFi.disconnectReasonName((wifi_err_reason_t)reason);
+    return (name != nullptr && name[0] != '\0') ? name : "UNKNOWN";
 }
 
 void WiFiDriver::init(const char* ssid, const char* password)
