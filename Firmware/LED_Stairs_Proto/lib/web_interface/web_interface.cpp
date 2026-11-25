@@ -7,6 +7,7 @@
 #include "network_config.h"
 #include "settings_store.h"
 #include "web_interface.h"
+#include "serial_page.h"
 #include "web_page.h"
 
 static String clockText(uint16_t minutes)
@@ -92,6 +93,7 @@ void WebInterface::update()
 void WebInterface::start()
 {
     m_server.on("/",                      HTTP_GET,  [this]() { handleRoot(); });
+    m_server.on("/serial",                HTTP_GET,  [this]() { handleSerialPage(); });
     m_server.on("/api/status",            HTTP_GET,  [this]() { handleStatus(); });
     m_server.on("/api/settings",          HTTP_GET,  [this]() { handleGetSettings(); });
     m_server.on("/api/settings",          HTTP_POST, [this]() { handleSaveSettings(); });
@@ -110,6 +112,11 @@ void WebInterface::start()
 void WebInterface::handleRoot()
 {
     m_server.send_P(200, "text/html", WEB_PAGE);
+}
+
+void WebInterface::handleSerialPage()
+{
+    m_server.send_P(200, "text/html", SERIAL_PAGE);
 }
 
 void WebInterface::handleStatus()

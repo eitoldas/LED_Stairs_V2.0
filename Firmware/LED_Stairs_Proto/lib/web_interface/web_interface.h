@@ -25,6 +25,7 @@ private:
     void start();
 
     void handleRoot();
+    void handleSerialPage();
     void handleStatus();
     void handleGetSettings();
     void handleSaveSettings();

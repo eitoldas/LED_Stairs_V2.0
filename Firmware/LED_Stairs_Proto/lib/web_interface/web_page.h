@@ -21,7 +21,9 @@ static const char WEB_PAGE[] PROGMEM = R"html(<!doctype html>
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.4 system-ui, sans-serif; }
   main { max-width: 640px; margin: 0 auto; padding: 16px; }
-  h1 { font-size: 22px; margin: 8px 0 16px; }
+  header { display: flex; align-items: baseline; justify-content: space-between; margin: 8px 0 16px; }
+  h1 { font-size: 22px; margin: 0; }
+  header a { color: var(--accent); }
   h2 { font-size: 15px; margin: 0 0 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
   section { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
   dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
@@ -42,7 +44,10 @@ static const char WEB_PAGE[] PROGMEM = R"html(<!doctype html>
 </head>
 <body>
 <main>
-  <h1>LED Stairs</h1>
+  <header>
+    <h1>LED Stairs</h1>
+    <a href="/serial">Serial console</a>
+  </header>
 
   <section>
     <h2>Status</h2>
