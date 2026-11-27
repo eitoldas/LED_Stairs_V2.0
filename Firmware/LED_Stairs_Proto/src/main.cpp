@@ -8,11 +8,13 @@
 #include "network_manager.h"
 #include "settings_store.h"
 #include "stairs_manager.h"
+#include "web_interface.h"
 
 CurrentSensor  currentSensor;
 DeviceInfo     deviceInfo;
 NetworkManager networkManager;
 StairsManager  stairsManager;
+WebInterface   webInterface;
 
 void setup()
 {
@@ -33,6 +35,7 @@ void setup()
 
     networkManager.init();
     stairsManager.init(&networkManager);
+    webInterface.init(&deviceInfo, &currentSensor, &networkManager);
 }
 
 void loop()
@@ -40,6 +43,7 @@ void loop()
     networkManager.update();
     stairsManager.update();
     currentSensor.update();
+    webInterface.update();
 
     // Temporary: dump the sensor reading while it is being tested.
     static uint32_t lastReportMs = 0;
