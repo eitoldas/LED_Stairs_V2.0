@@ -71,7 +71,6 @@ constexpr uint16_t CURRENT_ZERO_MV              = 1650;
 
 constexpr uint8_t  CURRENT_SAMPLE_COUNT       = 16;
 constexpr uint32_t CURRENT_SAMPLE_INTERVAL_MS = 100;
-constexpr uint32_t CURRENT_REPORT_INTERVAL_MS = 500;
 
 /*
  * Supply voltage feeding the LED strips. Only used to turn amps into watts.

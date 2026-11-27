@@ -8,13 +8,15 @@
 
 void NetworkManager::init()
 {
-    m_wifiDriver.init(WIFI_SSID, WIFI_PASSWORD);
+    m_address = addressFromSettings();
+    m_wifiDriver.init(WIFI_SSID, WIFI_PASSWORD, m_address);
     m_ntpDriver.init(NTP_SERVER, TIMEZONE);
     m_sunTimesDriver.init(SUN_LATITUDE, SUN_LONGITUDE);
 }
 
 void NetworkManager::update()
 {
+    checkAddressSettings();
     m_wifiDriver.update();
 
     if (!m_wifiDriver.isConnected())
@@ -35,6 +37,48 @@ void NetworkManager::update()
     }
 }
 
+void NetworkManager::checkAddressSettings()
+{
+    WiFiAddress address = addressFromSettings();
+    if (address == m_address)
+    {
+        m_addressChangePending = false;
+        return;
+    }
+
+    if (!m_addressChangePending)
+    {
+        m_addressChangePending = true;
+        m_addressChangedMs     = millis();
+        return;
+    }
+
+    if (millis() - m_addressChangedMs < WIFI_ADDRESS_CHANGE_DELAY_MS)
+    {
+        return;
+    }
+
+    m_addressChangePending = false;
+    m_address = address;
+    m_wifiDriver.setAddress(m_address);
+}
+
+WiFiAddress NetworkManager::addressFromSettings()
+{
+    const StairSettings& settings = Settings.get();
+    WiFiAddress address;
+
+    if (settings.staticIp != 0)
+    {
+        address.ip      = settings.staticIp;
+        address.gateway = settings.gateway;
+        address.subnet  = settings.subnet;
+        address.dns     = settings.dns;
+    }
+
+    return address;
+}
+
 void NetworkManager::startOta()
 {
     ArduinoOTA.setHostname(OTA_HOSTNAME);
@@ -46,6 +90,11 @@ void NetworkManager::startOta()
 
     ArduinoOTA.begin();
     m_otaStarted = true;
+}
+
+bool NetworkManager::isConnected() const
+{
+    return m_wifiDriver.isConnected();
 }
 
 bool NetworkManager::isTimeSynced() const

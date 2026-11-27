@@ -7,6 +7,7 @@
 #include "network_config.h"
 #include "settings_store.h"
 #include "web_interface.h"
+#include "serial_page.h"
 #include "web_page.h"
 
 static String clockText(uint16_t minutes)
@@ -45,6 +46,42 @@ static bool readNumber(JsonVariantConst value, uint32_t max, uint32_t& out)
     return true;
 }
 
+// A missing field leaves the address alone, an empty string clears it, and
+// anything else must be a dotted IPv4 address.
+static bool readAddress(JsonVariantConst value, uint32_t& out)
+{
+    if (value.isNull())
+    {
+        return true;
+    }
+
+    const char* text = value.as<const char*>();
+    if (text == nullptr)
+    {
+        return false;
+    }
+
+    if (text[0] == '\0')
+    {
+        out = 0;
+        return true;
+    }
+
+    IPAddress address;
+    if (!address.fromString(text))
+    {
+        return false;
+    }
+
+    out = (uint32_t)address;
+    return true;
+}
+
+static String addressText(uint32_t address)
+{
+    return (address != 0) ? IPAddress(address).toString() : String();
+}
+
 static bool readClock(JsonVariantConst value, uint8_t& hour, uint8_t& minute)
 {
     if (value.isNull())
@@ -79,7 +116,7 @@ void WebInterface::update()
 {
     if (!m_started)
     {
-        if (WiFi.status() == WL_CONNECTED)
+        if (m_networkManager->isConnected())
         {
             start();
         }
@@ -92,10 +129,12 @@ void WebInterface::update()
 void WebInterface::start()
 {
     m_server.on("/",                      HTTP_GET,  [this]() { handleRoot(); });
+    m_server.on("/serial",                HTTP_GET,  [this]() { handleSerialPage(); });
     m_server.on("/api/status",            HTTP_GET,  [this]() { handleStatus(); });
     m_server.on("/api/settings",          HTTP_GET,  [this]() { handleGetSettings(); });
     m_server.on("/api/settings",          HTTP_POST, [this]() { handleSaveSettings(); });
     m_server.on("/api/settings/defaults", HTTP_POST, [this]() { handleRestoreDefaults(); });
+    m_server.on("/api/logs",              HTTP_GET,  [this]() { handleLogs(); });
     m_server.onNotFound([this]() { handleNotFound(); });
 
     m_server.begin();
@@ -109,6 +148,11 @@ void WebInterface::start()
 void WebInterface::handleRoot()
 {
     m_server.send_P(200, "text/html", WEB_PAGE);
+}
+
+void WebInterface::handleSerialPage()
+{
+    m_server.send_P(200, "text/html", SERIAL_PAGE);
 }
 
 void WebInterface::handleStatus()
@@ -183,7 +227,11 @@ void WebInterface::handleSaveSettings()
            && readNumber(doc["retriggerCooldownMs"], UINT32_MAX, settings.retriggerCooldownMs)
            && readNumber(doc["exitOffsetMs"],        UINT32_MAX, settings.exitOffsetMs)
            && readClock(doc["nightStart"], settings.nightStartHour, settings.nightStartMinute)
-           && readClock(doc["nightEnd"],   settings.nightEndHour,   settings.nightEndMinute);
+           && readClock(doc["nightEnd"],   settings.nightEndHour,   settings.nightEndMinute)
+           && readAddress(doc["staticIp"], settings.staticIp)
+           && readAddress(doc["gateway"],  settings.gateway)
+           && readAddress(doc["subnet"],   settings.subnet)
+           && readAddress(doc["dns"],      settings.dns);
 
     if (!doc["automaticDaylight"].isNull())
     {
@@ -221,6 +269,10 @@ void WebInterface::sendSettings()
     doc["automaticDaylight"]   = settings.automaticDaylight;
     doc["nightStart"]          = clockText(settings.nightStartHour, settings.nightStartMinute);
     doc["nightEnd"]            = clockText(settings.nightEndHour, settings.nightEndMinute);
+    doc["staticIp"]            = addressText(settings.staticIp);
+    doc["gateway"]             = addressText(settings.gateway);
+    doc["subnet"]              = addressText(settings.subnet);
+    doc["dns"]                 = addressText(settings.dns);
 
     String body;
     serializeJson(doc, body);
@@ -235,6 +287,39 @@ void WebInterface::sendError(int code, const char* message)
     String body;
     serializeJson(doc, body);
     m_server.send(code, "application/json", body);
+}
+
+// Returns the log lines a browser hasn't seen yet. Lines are numbered by the
+// logger's running total: a client passes back the "total" it last received
+// as ?since=, and gets only newer lines. If it fell further behind than the
+// buffer holds, "missed" says how many lines it lost.
+void WebInterface::handleLogs()
+{
+    uint32_t total  = Log.totalLines();
+    uint32_t count  = Log.lineCount();
+    uint32_t oldest = total - count;
+
+    uint32_t since = m_server.hasArg("since") ? strtoul(m_server.arg("since").c_str(), nullptr, 10) : 0;
+    if (since > total)
+    {
+        since = 0;
+    }
+
+    uint32_t first = (since > oldest) ? since : oldest;
+
+    JsonDocument doc;
+    doc["total"]  = total;
+    doc["missed"] = first - since;
+
+    JsonArray lines = doc["lines"].to<JsonArray>();
+    for (uint32_t number = first; number < total; number++)
+    {
+        lines.add(Log.line(number - oldest));
+    }
+
+    String body;
+    serializeJson(doc, body);
+    m_server.send(200, "application/json", body);
 }
 
 void WebInterface::handleNotFound()

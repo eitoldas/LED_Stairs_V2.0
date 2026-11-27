@@ -25,10 +25,12 @@ private:
     void start();
 
     void handleRoot();
+    void handleSerialPage();
     void handleStatus();
     void handleGetSettings();
     void handleSaveSettings();
     void handleRestoreDefaults();
+    void handleLogs();
     void handleNotFound();
 
     void sendSettings();

@@ -9,6 +9,9 @@
  * each line straight on to the output (USB serial) and also keeps the most
  * recent LOG_LINE_COUNT lines in memory, so they can be read back later,
  * e.g. by a web page.
+ *
+ * Each line starts with the local time once NTP has set the clock, or with
+ * the uptime (+hh:mm:ss) before that.
  */
 
 class Logger : public Print
@@ -24,6 +27,8 @@ public:
     uint32_t    totalLines() const;
 
 private:
+    void put(char c);
+    void writeTimestamp();
     void commitLine();
 
     Print* m_out = nullptr;
@@ -35,7 +40,8 @@ private:
     char   m_current[LOG_LINE_LENGTH] = {};
     size_t m_currentLength = 0;
 
-    uint32_t m_totalLines = 0;
+    uint32_t m_totalLines  = 0;
+    bool     m_atLineStart = true;
 };
 
 extern Logger Log;

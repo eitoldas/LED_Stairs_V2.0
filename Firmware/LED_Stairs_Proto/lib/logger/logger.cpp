@@ -1,8 +1,13 @@
 #include <Arduino.h>
+#include <time.h>
 
 #include "logger.h"
 
 Logger Log;
+
+// Before NTP has run the clock counts up from 1970, so anything earlier than
+// this means "not set yet"
+static constexpr time_t CLOCK_VALID_AFTER = 1700000000;
 
 void Logger::init(Print& out)
 {
@@ -16,33 +21,18 @@ size_t Logger::write(uint8_t c)
 
 size_t Logger::write(const uint8_t* buffer, size_t size)
 {
-    if (m_out != nullptr)
-    {
-        m_out->write(buffer, size);
-    }
-
     for (size_t i = 0; i < size; i++)
     {
         char c = (char)buffer[i];
 
-        if (c == '\r')
+        // Stamp a line when its first character arrives; blank lines stay blank
+        if (m_atLineStart && c != '\r' && c != '\n')
         {
-            continue;
+            m_atLineStart = false;
+            writeTimestamp();
         }
 
-        if (c == '\n')
-        {
-            commitLine();
-            continue;
-        }
-
-        m_current[m_currentLength++] = c;
-
-        // Leave room for the terminator; an overlong line just wraps.
-        if (m_currentLength == LOG_LINE_LENGTH - 1)
-        {
-            commitLine();
-        }
+        put(c);
     }
 
     return size;
@@ -66,6 +56,58 @@ const char* Logger::line(size_t index) const
 uint32_t Logger::totalLines() const
 {
     return m_totalLines;
+}
+
+void Logger::put(char c)
+{
+    if (m_out != nullptr)
+    {
+        m_out->write((uint8_t)c);
+    }
+
+    if (c == '\r')
+    {
+        return;
+    }
+
+    if (c == '\n')
+    {
+        commitLine();
+        m_atLineStart = true;
+        return;
+    }
+
+    m_current[m_currentLength++] = c;
+
+    // Leave room for the terminator; an overlong line just wraps.
+    if (m_currentLength == LOG_LINE_LENGTH - 1)
+    {
+        commitLine();
+    }
+}
+
+void Logger::writeTimestamp()
+{
+    char text[16];
+    time_t now = time(nullptr);
+
+    if (now > CLOCK_VALID_AFTER)
+    {
+        struct tm timeinfo {};
+        localtime_r(&now, &timeinfo);
+        strftime(text, sizeof(text), "<%H:%M:%S> ", &timeinfo);
+    }
+    else
+    {
+        unsigned long seconds = millis() / 1000;
+        snprintf(text, sizeof(text), "<+%02lu:%02lu:%02lu> ",
+            seconds / 3600, seconds / 60 % 60, seconds % 60);   
+    }
+
+    for (const char* p = text; *p != '\0'; p++)
+    {
+        put(*p);
+    }
 }
 
 void Logger::commitLine()
